@@ -81,3 +81,15 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.pdb
+LLIDE/Release/LLIDE.tlog/unsuccessfulbuild
+*.lastbuildstate
+*.tlog
+*.log
+*.user
+*.filters
+*.idb
+*.suo
+*.opendb
+*.db
+*.ilk
