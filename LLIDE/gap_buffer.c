@@ -22,9 +22,22 @@ void gapbuf_add(gapbuf* buf, char c)
 	buf->data[buf->beg_cur++] = c;
 }
 
+void gapbuf_addn(gapbuf* buf, char c, size_t len)
+{
+	while (len--)
+	{
+		buf->data[buf->beg_cur++] = c;
+	}
+}
+
 void gapbuf_rem(gapbuf* buf)
 {
 	buf->beg_cur--;
+}
+
+void gapbuf_remn(gapbuf* buf, size_t len)
+{
+	buf->beg_cur -= len;
 }
 
 void gapbuf_left(gapbuf* buf)

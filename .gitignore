@@ -93,3 +93,4 @@ LLIDE/Release/LLIDE.tlog/unsuccessfulbuild
 *.opendb
 *.db
 *.ilk
+*.TMP
