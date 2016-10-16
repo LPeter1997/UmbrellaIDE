@@ -7,6 +7,7 @@
 #include "console.h"
 #include "text_line.h"
 #include "position.h"
+#include "status_bar.h"
 
 #define ARROW_KEY 224
 #define BACKSPACE_KEY 8
@@ -56,6 +57,8 @@ void textbox_activate(void)
 
 	console_pos(0, 0);
 	console_pos(box_pos.x, box_pos.y);
+	statusbar_update(cur_pos.x, cur_pos.y);
+	cur_repos();
 
 	int key;
 	for (;;)
@@ -66,22 +69,32 @@ void textbox_activate(void)
 		if (key == ARROW_KEY)
 		{
 			textbox_arrow_key(getch());
+			statusbar_update(cur_pos.x, cur_pos.y);
+			cur_repos();
 		}
 		else if (key == TAB_KEY)
 		{
 			textbox_tab();
+			statusbar_update(cur_pos.x, cur_pos.y);
+			cur_repos();
 		}
 		else if (key == ENTER_KEY)
 		{
 			textbox_new_line();
+			statusbar_update(cur_pos.x, cur_pos.y);
+			cur_repos();
 		}
 		else if (key == BACKSPACE_KEY)
 		{
 			textbox_backspace();
+			statusbar_update(cur_pos.x, cur_pos.y);
+			cur_repos();
 		}
 		else if (isprint(key))
 		{
 			textbox_print((char)key);
+			statusbar_update(cur_pos.x, cur_pos.y);
+			cur_repos();
 		}
 		else
 		{
@@ -195,7 +208,7 @@ static void textbox_backspace(void)
 			wpos_x = cur_pos.x;
 			cur_repos();
 			console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
-			clear(size.x - cur_pos.x);
+			clear(current_line->len - cur_pos.x);
 			cur_repos();
 			current_line->len -= cnt;
 		}

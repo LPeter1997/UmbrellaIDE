@@ -97,6 +97,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -121,6 +122,7 @@
     <ClCompile Include="gap_buffer.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="menu_bar.c" />
+    <ClCompile Include="status_bar.c" />
     <ClCompile Include="textbox.c" />
     <ClCompile Include="text_line.c" />
     <ClCompile Include="vector.c" />
@@ -130,6 +132,7 @@
     <ClInclude Include="gap_buffer.h" />
     <ClInclude Include="menu_bar.h" />
     <ClInclude Include="position.h" />
+    <ClInclude Include="status_bar.h" />
     <ClInclude Include="textbox.h" />
     <ClInclude Include="text_line.h" />
     <ClInclude Include="vector.h" />
