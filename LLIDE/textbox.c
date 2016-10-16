@@ -219,7 +219,7 @@ static void textbox_backspace(void)
 			cur_repos();
 			console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
 
-			clear(size.x - cur_pos.x);
+			clear(current_line->len - cur_pos.x);
 			cur_repos();
 			current_line->len--;
 		}

@@ -94,3 +94,5 @@ LLIDE/Release/LLIDE.tlog/unsuccessfulbuild
 *.db
 *.ilk
 *.TMP
+*.ipdb
+*.iobj
