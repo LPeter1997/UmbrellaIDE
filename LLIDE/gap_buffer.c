@@ -36,3 +36,29 @@ void gapbuf_right(gapbuf* buf)
 {
 	buf->data[buf->beg_cur++] = buf->data[buf->end_cur++];
 }
+
+void gapbuf_end(gapbuf* buf)
+{
+	memcpy(buf->data + buf->beg_cur,
+		buf->data + buf->end_cur,
+		buf->size - buf->end_cur);
+
+	buf->beg_cur += buf->size - buf->end_cur;
+	buf->end_cur = buf->size;
+}
+
+void gapbuf_transfer(gapbuf* from, gapbuf* to)
+{
+	char* nexts = gapbuf_dataafter(from);
+	size_t rem = gapbuf_after(from);
+
+	memcpy(gapbuf_dataend(to) - rem, nexts, rem);
+	memset(nexts, ' ', rem);
+	to->end_cur -= rem;
+	from->end_cur = from->size;
+}
+
+void gapbuf_moveend(gapbuf* buf, size_t off, size_t len)
+{
+	memcpy(gapbuf_dataend(buf) - len, buf->data + off, len);
+}

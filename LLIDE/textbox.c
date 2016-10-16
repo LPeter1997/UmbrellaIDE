@@ -6,6 +6,7 @@
 #include "textbox.h"
 #include "console.h"
 #include "text_line.h"
+#include "position.h"
 
 #define ARROW_KEY 224
 #define BACKSPACE_KEY 8
@@ -16,16 +17,14 @@
 #define VK_LEFT  75
 #define VK_RIGHT 77
 
-static size_t box_x = 0;
-static size_t box_y = 1;
+#define cur_repos() (console_pos(box_pos.x + cur_pos.x, box_pos.y + cur_pos.y))
+#define clear(x) (console_repeat(' ', x))
 
-static size_t pos_x = 0;
-static size_t pos_y = 0;
-
+static pos box_pos = { 0, 1 };
+static pos cur_pos = { 0, 0 };
 static size_t wpos_x = 0;
 
-static size_t width;
-static size_t height;
+static pos size = { 0, 0 };
 
 static line* first_line;
 static line* current_line;
@@ -34,18 +33,19 @@ static gapbuf* curr_buff;
 static void textbox_arrow_key(char);
 static void textbox_new_line(void);
 static void textbox_backspace(void);
+static void textbox_print(char);
 static void textbox_redraw_down(void);
 static void textbox_redraw_up(void);
+static void textbox_line(line*);
 
 void textbox_init(void)
 {
-	width = console_width() - box_x;
-	height = console_height() - box_y;
+	size.x = console_width() - box_pos.x;
+	size.y = console_height() - box_pos.y;
 
 	first_line = (line*)malloc(sizeof(line));
 	line_new(first_line, NULL, NULL);
-	current_line = first_line;
-	curr_buff = &current_line->buffer;
+	textbox_line(first_line);
 }
 
 void textbox_activate(void)
@@ -53,7 +53,7 @@ void textbox_activate(void)
 	console_col(console_mix(Col_White, Col_Black));
 
 	console_pos(0, 0);
-	console_pos(box_x, box_y);
+	console_pos(box_pos.x, box_pos.y);
 
 	int key;
 	for (;;)
@@ -75,14 +75,7 @@ void textbox_activate(void)
 		}
 		else if (isprint(key))
 		{
-			console_writec((char)key);
-			gapbuf_add(curr_buff, (char)key);
-			wpos_x = ++pos_x;
-			console_pos(box_x + pos_x, box_y + pos_y);
-			console_writen(curr_buff->data + curr_buff->end_cur,
-				curr_buff->size - curr_buff->end_cur);
-			console_pos(box_x + pos_x, box_y + pos_y);
-			current_line->len++;
+			textbox_print((char)key);
 		}
 		else
 		{
@@ -92,90 +85,72 @@ void textbox_activate(void)
 	}
 }
 
+size_t textbow_width(void)
+{
+	return size.x;
+}
+
 static void textbox_arrow_key(char wh)
 {
 	switch (wh)
 	{
 	case VK_UP:
-		if (current_line->prev != NULL)
+	case VK_DOWN:;
+		line* nline = NULL;
+		int add = 0;
+		if (wh == VK_DOWN)
 		{
-			pos_y--;
-			current_line = current_line->prev;
-			curr_buff = &current_line->buffer;
-			if (current_line->len <= wpos_x)
-			{
-				pos_x = current_line->len;
-				curr_buff->end_cur = curr_buff->size;
-				curr_buff->beg_cur = current_line->len;
-			}
-			else
-			{
-				// Just copy everything to front
-				memcpy(curr_buff->data + curr_buff->beg_cur,
-					curr_buff->data + curr_buff->end_cur,
-					curr_buff->size - curr_buff->end_cur);
-
-				size_t len = current_line->len - wpos_x;
-				curr_buff->beg_cur = wpos_x;
-				curr_buff->end_cur = curr_buff->size - len;
-				// Move rest
-				memcpy(curr_buff->data + curr_buff->size - len,
-					curr_buff->data + wpos_x, len);
-
-				pos_x = wpos_x;
-			}
+			nline = current_line->next;
+			add = 1;
 		}
-		break;
-
-	case VK_DOWN:
-		if (current_line->next != NULL)
+		else
 		{
-			pos_y++;
-			current_line = current_line->next;
-			curr_buff = &current_line->buffer;
+			nline = current_line->prev;
+			add = -1;
+		}
+		if (nline != NULL)
+		{
+			cur_pos.y += add;
+			textbox_line(nline);
 			if (current_line->len <= wpos_x)
 			{
-				pos_x = current_line->len;
+				cur_pos.x = current_line->len;
 				curr_buff->end_cur = curr_buff->size;
 				curr_buff->beg_cur = current_line->len;
 			}
 			else
 			{
 				// Just copy everything to front
-				memcpy(curr_buff->data + curr_buff->beg_cur,
-					curr_buff->data + curr_buff->end_cur,
-					curr_buff->size - curr_buff->end_cur);
+				gapbuf_end(curr_buff);
 
 				size_t len = current_line->len - wpos_x;
 				curr_buff->beg_cur = wpos_x;
 				curr_buff->end_cur = curr_buff->size - len;
 				// Move rest
-				memcpy(curr_buff->data + curr_buff->size - len,
-					curr_buff->data + wpos_x, len);
-
-				pos_x = wpos_x;
+				gapbuf_moveend(curr_buff, wpos_x, len);
+				cur_pos.x = wpos_x;
 			}
 		}
 		break;
 
 	case VK_LEFT:
-		if (pos_x > 0)
+		if (cur_pos.x > 0)
 		{
-			wpos_x = --pos_x;
+			wpos_x = --cur_pos.x;
 			gapbuf_left(curr_buff);
 		}
 		break;
 
 	case VK_RIGHT:
-		if (pos_x < current_line->len)
+		if (cur_pos.x < current_line->len)
 		{
-			wpos_x = ++pos_x;
+			wpos_x = ++cur_pos.x;
 			gapbuf_right(curr_buff);
 		}
 		break;
 	}
 
-	console_pos(box_x + pos_x, box_y + pos_y);
+	cur_repos();
 }
 
 static void textbox_new_line(void)
@@ -184,41 +159,34 @@ static void textbox_new_line(void)
 	line* ln = (line*)malloc(sizeof(line));
 	line_new(ln, current_line, current_line->next);
 
-	// Cut the end of current buffer
-	char* nexts = curr_buff->data + curr_buff->end_cur;
-	size_t nextl = curr_buff->size - curr_buff->end_cur;
-
 	// Copy to next line
-	memcpy(ln->buffer.data + ln->buffer.size - nextl,
-		nexts, nextl);
-	memset(nexts, ' ', nextl);
-	ln->buffer.end_cur -= nextl;
+	size_t nextl = gapbuf_after(curr_buff);
+	gapbuf_transfer(current_line, ln);
 	current_line->len -= nextl;
-	curr_buff->end_cur = curr_buff->size;
-	current_line = ln;
-	curr_buff = &ln->buffer;
-	console_repeat(' ', nextl);
-	pos_y++;
-	pos_x = 0;
+	textbox_line(ln);
+	// Crear after
+	clear(nextl);
+	cur_pos.y++;
+	cur_pos.x = 0;
 	current_line->len = nextl;
-	console_pos(box_x + pos_x, box_y + pos_y);
+	cur_repos();
 	console_writen(curr_buff->data + curr_buff->end_cur, nextl);
-	console_pos(box_x + pos_x, box_y + pos_y);
+	cur_repos();
 	textbox_redraw_down();
+	wpos_x = 0;
 }
 
 static void textbox_backspace(void)
 {
-	if (pos_x > 0)
+	if (cur_pos.x > 0)
 	{
-		wpos_x = --pos_x;
+		wpos_x = --cur_pos.x;
 		gapbuf_rem(curr_buff);
-		console_pos(box_x + pos_x, box_y + pos_y);
-		console_writen(curr_buff->data + curr_buff->end_cur,
-			curr_buff->size - curr_buff->end_cur);
+		cur_repos();
+		console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
 
-		console_repeat(' ', width - pos_x);
-		console_pos(box_x + pos_x, box_y + pos_y);
+		clear(size.x - cur_pos.x);
+		cur_repos();
 		current_line->len--;
 	}
 	else
@@ -226,42 +194,45 @@ static void textbox_backspace(void)
 		line* prev = current_line->prev;
 		if (prev != NULL)
 		{
-			memcpy(prev->buffer.data + prev->buffer.size - current_line->len,
-				current_line->buffer.data + current_line->buffer.end_cur,
-				current_line->len);
-			console_pos(box_x, box_y + pos_y);
-			console_repeat(' ', current_line->len);
-			wpos_x = pos_x = prev->len;
-			pos_y--;
+			gapbuf_transfer(curr_buff, &prev->buffer);
+			
+			clear(current_line->len);
+			wpos_x = cur_pos.x = prev->len;
+			cur_pos.y--;
 			prev->buffer.beg_cur = prev->len;
 			prev->buffer.end_cur = prev->buffer.size - current_line->len;
 			prev->len += current_line->len;
-			current_line = current_line->prev;
-			curr_buff = &current_line->buffer;
+			textbox_line(current_line->prev);
 			line_del(current_line->next);
-			console_pos(box_x + pos_x, box_y + pos_y);
-			console_writen(curr_buff->data + curr_buff->end_cur,
-				curr_buff->size - curr_buff->end_cur);
-			console_pos(box_x + pos_x, box_y + pos_y);
+			cur_repos();
+			console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
+			cur_repos();
 			textbox_redraw_up();
+			wpos_x = cur_pos.x;
 		}
 	}
 }
 
-size_t textbow_width(void)
+static void textbox_print(char ch)
 {
-	return width;
+	console_writec((char)ch);
+	gapbuf_add(curr_buff, (char)ch);
+	wpos_x = ++cur_pos.x;
+	cur_repos();
+	console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
+	cur_repos();
+	current_line->len++;
 }
 
 static void textbox_redraw_up(void)
 {
 	size_t nextsz = 0;
-	size_t orig_y = pos_y;
+	size_t orig_y = cur_pos.y;
 	line* ln = current_line->next;
 	while (ln != NULL)
 	{
-		pos_y++;
-		console_pos(box_x, box_y + pos_y);
+		cur_pos.y++;
+		console_pos(box_pos.x, box_pos.y + cur_pos.y);
 		console_writen(ln->buffer.data, ln->buffer.beg_cur);
 		console_writen(ln->buffer.data + ln->buffer.end_cur,
 			ln->buffer.size - ln->buffer.end_cur);
@@ -270,22 +241,22 @@ static void textbox_redraw_up(void)
 		{
 			if (ln->next->len < ln->len)
 			{
-				console_repeat(' ', ln->len - ln->next->len);
+				clear(ln->len - ln->next->len);
 			}
 		}
 		ln = ln->next;
 	}
-	pos_y++;
-	console_pos(box_x, box_y + pos_y);
-	console_repeat(' ', nextsz);
-	pos_y = orig_y;
-	console_pos(box_x + pos_x, box_y + pos_y);
+	cur_pos.y++;
+	console_pos(box_pos.x, box_pos.y + cur_pos.y);
+	clear(nextsz);
+	cur_pos.y = orig_y;
+	cur_repos();
 }
 
 static void textbox_redraw_down(void)
 {
 	size_t lastsz = 0;
-	size_t orig_y = pos_y;
+	size_t orig_y = cur_pos.y;
 	line* ln = current_line->next;
 	while (ln != NULL)
 	{
@@ -293,17 +264,23 @@ static void textbox_redraw_down(void)
 		{
 			if (ln->prev->len < ln->len)
 			{
-				console_pos(box_x + ln->prev->len, box_y + pos_y);
-				console_repeat(' ', ln->len - ln->prev->len);
+				console_pos(box_pos.x + ln->prev->len, box_pos.y + cur_pos.y);
+				clear(ln->len - ln->prev->len);
 			}
 		}
-		pos_y++;
-		console_pos(box_x, box_y + pos_y);
+		cur_pos.y++;
+		console_pos(box_pos.x, box_pos.y + cur_pos.y);
 		console_writen(ln->buffer.data, ln->buffer.beg_cur);
 		console_writen(ln->buffer.data + ln->buffer.end_cur,
 			ln->buffer.size - ln->buffer.end_cur);
 		ln = ln->next;
 	}
-	pos_y = orig_y;
-	console_pos(box_x + pos_x, box_y + pos_y);
+	cur_pos.y = orig_y;
+	cur_repos();
+}
+
+static void textbox_line(line* ln)
+{
+	current_line = ln;
+	curr_buff = &ln->buffer;
 }

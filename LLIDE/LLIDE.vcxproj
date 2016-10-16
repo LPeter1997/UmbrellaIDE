@@ -129,6 +129,7 @@
     <ClInclude Include="console.h" />
     <ClInclude Include="gap_buffer.h" />
     <ClInclude Include="menu_bar.h" />
+    <ClInclude Include="position.h" />
     <ClInclude Include="textbox.h" />
     <ClInclude Include="text_line.h" />
     <ClInclude Include="vector.h" />

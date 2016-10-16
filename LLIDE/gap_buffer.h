@@ -17,5 +17,12 @@ void gapbuf_add(gapbuf*, char);
 void gapbuf_rem(gapbuf*);
 void gapbuf_left(gapbuf*);
 void gapbuf_right(gapbuf*);
+void gapbuf_end(gapbuf*);
+void gapbuf_transfer(gapbuf*, gapbuf*);
+void gapbuf_moveend(gapbuf*, size_t, size_t);
+
+#define gapbuf_after(x) ((x)->size - (x)->end_cur)
+#define gapbuf_dataend(x) ((x)->data + (x)->size)
+#define gapbuf_dataafter(x) ((x)->data + (x)->end_cur)
 
 #endif /* __GAP_BUFFER_H__ */
