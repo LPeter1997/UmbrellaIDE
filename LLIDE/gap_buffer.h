@@ -26,6 +26,8 @@ void gapbuf_moveend(gapbuf*, size_t, size_t);
 #define gapbuf_after(x) ((x)->size - (x)->end_cur)
 #define gapbuf_dataend(x) ((x)->data + (x)->size)
 #define gapbuf_dataafter(x) ((x)->data + (x)->end_cur)
+#define gapbuf_dataat(x) ((x)->data + (x)->beg_cur)
 #define gapbuf_char(x) ((x)->data[(x)->beg_cur - 1])
+#define gapbuf_charback(x, y) ((x)->data[(x)->beg_cur - 1 - (y)])
 
 #endif /* __GAP_BUFFER_H__ */

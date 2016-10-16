@@ -158,6 +158,17 @@ static void textbox_arrow_key(char wh)
 			wpos_x = --cur_pos.x;
 			gapbuf_left(curr_buff);
 		}
+		else if (current_line->prev != NULL)
+		{
+			// Just copy everything to front
+			textbox_line(current_line->prev);
+			gapbuf_end(curr_buff);
+
+			size_t len = current_line->len;
+			cur_pos.x = len;
+			cur_pos.y--;
+			wpos_x = len;
+		}
 		break;
 
 	case VK_RIGHT:
@@ -165,6 +176,18 @@ static void textbox_arrow_key(char wh)
 		{
 			wpos_x = ++cur_pos.x;
 			gapbuf_right(curr_buff);
+		}
+		else if (current_line->next != NULL)
+		{
+			// Just copy everything to front
+			textbox_line(current_line->next);
+			size_t len = current_line->len;
+			curr_buff->beg_cur = 0;
+			curr_buff->end_cur = curr_buff->size - len;
+			gapbuf_moveend(curr_buff, 0, len);
+			cur_pos.x = 0;
+			cur_pos.y++;
+			wpos_x = 0;
 		}
 		break;
 	}
@@ -190,7 +213,7 @@ static void textbox_new_line(void)
 	wpos_x = 0;
 	current_line->len = nextl;
 	cur_repos();
-	console_writen(curr_buff->data + curr_buff->end_cur, nextl);
+	console_writen(gapbuf_dataafter(curr_buff), nextl);
 	cur_repos();
 	textbox_redraw_down();
 }
@@ -202,7 +225,7 @@ static void textbox_backspace(void)
 		if (gapbuf_char(curr_buff) == '\t')
 		{
 			size_t cnt = 0;
-			while (curr_buff->data[curr_buff->beg_cur - 1 - cnt] == '\t' && ++cnt < 4);
+			while (gapbuf_charback(curr_buff, cnt) == '\t' && ++cnt < 4);
 			gapbuf_remn(curr_buff, cnt);
 			cur_pos.x -= cnt;
 			wpos_x = cur_pos.x;

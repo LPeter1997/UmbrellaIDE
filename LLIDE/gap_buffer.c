@@ -52,11 +52,11 @@ void gapbuf_right(gapbuf* buf)
 
 void gapbuf_end(gapbuf* buf)
 {
-	memcpy(buf->data + buf->beg_cur,
-		buf->data + buf->end_cur,
-		buf->size - buf->end_cur);
+	memcpy(gapbuf_dataat(buf),
+		gapbuf_dataafter(buf),
+		gapbuf_after(buf));
 
-	buf->beg_cur += buf->size - buf->end_cur;
+	buf->beg_cur += gapbuf_after(buf);
 	buf->end_cur = buf->size;
 }
 
