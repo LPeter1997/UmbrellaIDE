@@ -40,4 +40,7 @@ void console_writen(char*, size_t);
 size_t console_write(char*);
 void console_repeat(char, size_t);
 
+size_t console_x(void);
+size_t console_y(void);
+
 #endif /* __CONSOLE_H__ */

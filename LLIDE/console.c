@@ -94,3 +94,15 @@ void console_repeat(char ch, size_t cnt)
 	while (cnt--)
 		putchar(ch);
 }
+
+size_t console_x(void)
+{
+	GetConsoleScreenBufferInfo(console, &buffer_info);
+	return buffer_info.dwCursorPosition.X;
+}
+
+size_t console_y(void)
+{
+	GetConsoleScreenBufferInfo(console, &buffer_info);
+	return buffer_info.dwCursorPosition.Y;
+}

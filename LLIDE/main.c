@@ -3,16 +3,17 @@
 #include "console.h"
 #include "menu_bar.h"
 #include "textbox.h"
+#include "vector.h"
 
 int main(void)
 {
-	int i = 0;
+	int i;
+
 	console_init();
+
 	menu_draw();
+
 	textbox_init();
-	textbox_draw();
-	console_pos(2, 0);
-	console_pos(2, 1);
 	textbox_activate();
 
 	getchar();

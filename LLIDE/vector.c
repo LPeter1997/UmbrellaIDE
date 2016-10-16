@@ -2,24 +2,19 @@
 
 void vector_new(vector* vec, size_t init)
 {
-	vec->data = (int*)malloc(init * sizeof(int));
+	vec->data = (uint32_t*)malloc(init * sizeof(uint32_t));
 	vec->used = 0;
 	vec->size = init;
 }
 
-void vector_insert(vector* vec, int el)
+void vector_add(vector* vec, uint32_t el)
 {
 	if (vec->used == vec->size)
 	{
 		vec->size *= 2;
-		vec->data = (int*)realloc(vec->data, vec->size * sizeof(int));
+		vec->data = (uint32_t*)realloc(vec->data, vec->size * sizeof(uint32_t));
 	}
 	vec->data[vec->used++] = el;
-}
-
-inline void vector_add(vector* vec, int el)
-{
-	vector_insert(vec, vec->used);
 }
 
 void vector_del(vector* vec)
