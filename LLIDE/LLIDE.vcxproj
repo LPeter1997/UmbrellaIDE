@@ -126,6 +126,7 @@
     <ClCompile Include="gap_buffer.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="menu_bar.c" />
+    <ClCompile Include="regexp.c" />
     <ClCompile Include="status_bar.c" />
     <ClCompile Include="textbox.c" />
     <ClCompile Include="text_line.c" />
@@ -136,6 +137,7 @@
     <ClInclude Include="gap_buffer.h" />
     <ClInclude Include="menu_bar.h" />
     <ClInclude Include="position.h" />
+    <ClInclude Include="regexp.h" />
     <ClInclude Include="status_bar.h" />
     <ClInclude Include="textbox.h" />
     <ClInclude Include="text_line.h" />
