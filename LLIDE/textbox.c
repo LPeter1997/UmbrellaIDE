@@ -36,7 +36,6 @@ static void textbox_arrow_key(char);
 static void textbox_new_line(void);
 static void textbox_backspace(void);
 static void textbox_print(char);
-static void textbox_tab(void);
 static void textbox_redraw_down(void);
 static void textbox_redraw_up(void);
 static void textbox_line(line*);
@@ -69,12 +68,6 @@ void textbox_activate(void)
 		if (key == ARROW_KEY)
 		{
 			textbox_arrow_key(getch());
-			statusbar_update(cur_pos.x, cur_pos.y);
-			cur_repos();
-		}
-		else if (key == TAB_KEY)
-		{
-			textbox_tab();
 			statusbar_update(cur_pos.x, cur_pos.y);
 			cur_repos();
 		}
@@ -222,30 +215,14 @@ static void textbox_backspace(void)
 {
 	if (cur_pos.x > 0)
 	{
-		if (gapbuf_char(curr_buff) == '\t')
-		{
-			size_t cnt = 0;
-			while (gapbuf_charback(curr_buff, cnt) == '\t' && ++cnt < 4);
-			gapbuf_remn(curr_buff, cnt);
-			cur_pos.x -= cnt;
-			wpos_x = cur_pos.x;
-			cur_repos();
-			console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
-			clear(current_line->len - cur_pos.x);
-			cur_repos();
-			current_line->len -= cnt;
-		}
-		else
-		{
-			wpos_x = --cur_pos.x;
-			gapbuf_rem(curr_buff);
-			cur_repos();
-			console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
+		wpos_x = --cur_pos.x;
+		gapbuf_rem(curr_buff);
+		cur_repos();
+		console_writen(gapbuf_dataafter(curr_buff), gapbuf_after(curr_buff));
 
-			clear(current_line->len - cur_pos.x);
-			cur_repos();
-			current_line->len--;
-		}
+		clear(current_line->len - cur_pos.x);
+		cur_repos();
+		current_line->len--;
 	}
 	else
 	{
